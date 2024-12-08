@@ -1,8 +1,3 @@
--- staging_raw_table_creation.sql
--- Location: infrastructure_initiation folder
--- Description: Creates staging raw tables for data ingestion
-
--- Table: DimCategories
 CREATE TABLE DimCategories (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     CategoryID INT,
@@ -10,7 +5,6 @@ CREATE TABLE DimCategories (
     Description NVARCHAR(MAX)
 );
 
--- Table: DimCustomers
 CREATE TABLE DimCustomers (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     CustomerID NVARCHAR(10),
@@ -26,7 +20,6 @@ CREATE TABLE DimCustomers (
     Fax NVARCHAR(30)
 );
 
--- Table: DimEmployees
 CREATE TABLE DimEmployees (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     EmployeeID INT,
@@ -57,7 +50,6 @@ CREATE TABLE OrderDetails (
     Discount DECIMAL(5,2)
 );
 
--- Table: FactOrders
 CREATE TABLE FactOrders (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     OrderID INT,
@@ -77,7 +69,6 @@ CREATE TABLE FactOrders (
     TerritoryID INT
 );
 
--- Table: DimProducts
 CREATE TABLE DimProducts (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     ProductID INT,
@@ -92,7 +83,6 @@ CREATE TABLE DimProducts (
     Discontinued BIT
 );
 
--- Table: DimRegion
 CREATE TABLE DimRegion (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     RegionID INT,
@@ -101,7 +91,6 @@ CREATE TABLE DimRegion (
     RegionImportance NVARCHAR(50)
 );
 
--- Table: DimShippers
 CREATE TABLE DimShippers (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     ShipperID INT,
@@ -109,7 +98,6 @@ CREATE TABLE DimShippers (
     Phone NVARCHAR(30)
 );
 
--- Table: DimSuppliers
 CREATE TABLE DimSuppliers (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     SupplierID INT,
@@ -126,7 +114,6 @@ CREATE TABLE DimSuppliers (
     HomePage NVARCHAR(MAX)
 );
 
--- Table: DimTerritories
 CREATE TABLE DimTerritories (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     TerritoryID NVARCHAR(20),
