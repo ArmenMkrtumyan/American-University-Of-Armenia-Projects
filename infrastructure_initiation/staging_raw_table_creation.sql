@@ -119,6 +119,65 @@ CREATE TABLE DimTerritories (
     TerritoryID NVARCHAR(20),
     TerritoryDescription NVARCHAR(100),
     TerritoryCode NVARCHAR(20),
-    RegionID INT
+    RegionID INT,
+    CONSTRAINT FK_DimTerritories_DimRegion FOREIGN KEY (RegionID)
+        REFERENCES DimRegion(RegionID)
 );
 
+CREATE TABLE DimDate (
+    staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
+    FullDate DATE NOT NULL,
+    Day INT,
+    Month INT,
+    Year INT,
+    Quarter INT,
+    DayOfWeek NVARCHAR(20),
+    MonthName NVARCHAR(20),
+    QuarterName NVARCHAR(20)
+);
+
+
+ALTER TABLE FactOrders
+ADD CONSTRAINT FK_FactOrders_DimCustomers FOREIGN KEY (CustomerID)
+REFERENCES DimCustomers (CustomerID);
+
+ALTER TABLE FactOrders
+ADD CONSTRAINT FK_FactOrders_DimEmployees FOREIGN KEY (EmployeeID)
+REFERENCES DimEmployees (EmployeeID);
+
+ALTER TABLE FactOrders
+ADD CONSTRAINT FK_FactOrders_DimProducts FOREIGN KEY (ProductID)
+REFERENCES DimProducts (ProductID);
+
+ALTER TABLE FactOrders
+ADD CONSTRAINT FK_FactOrders_DimShippers FOREIGN KEY (ShipVia)
+REFERENCES DimShippers (ShipperID);
+
+ALTER TABLE FactOrders
+ADD CONSTRAINT FK_FactOrders_DimTerritories FOREIGN KEY (TerritoryID)
+REFERENCES DimTerritories (TerritoryID);
+
+ALTER TABLE FactOrders
+ADD CONSTRAINT FK_FactOrders_DimDate FOREIGN KEY (OrderDate)
+REFERENCES DimDate (FullDate);
+
+ALTER TABLE FactOrders
+ADD CONSTRAINT FK_FactOrders_DimDate FOREIGN KEY (OrderDate)
+REFERENCES DimDate (FullDate);
+
+ALTER TABLE OrderDetails
+ADD CONSTRAINT FK_OrderDetails_FactOrders FOREIGN KEY (OrderID)
+REFERENCES FactOrders (OrderID);
+
+ALTER TABLE OrderDetails
+ADD CONSTRAINT FK_OrderDetails_DimProducts FOREIGN KEY (ProductID)
+REFERENCES DimProducts (ProductID);
+
+ALTER TABLE DimTerritories
+ADD CONSTRAINT FK_DimTerritories_DimRegion
+FOREIGN KEY (RegionID)
+REFERENCES DimRegion (RegionID);
+
+ALTER TABLE FactOrders
+ADD CONSTRAINT FK_FactOrders_DimDate FOREIGN KEY (OrderDate)
+REFERENCES DimDate (FullDate);
