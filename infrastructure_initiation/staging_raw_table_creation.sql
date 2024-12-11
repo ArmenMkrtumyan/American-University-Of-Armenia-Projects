@@ -1,117 +1,133 @@
--- CREATE DATABASE ORDER_DDS;
--- USE ORDER_DDS;
--- SELECT @@SERVERNAME;
+DROP TABLE IF EXISTS Categories_Staging;
 
-USE ORDER_DDS;
+CREATE TABLE Categories_Staging (
+    staging_raw_category_id INT IDENTITY(1,1) PRIMARY KEY,
+    CategoryID INT,
+    CategoryName NVARCHAR(100),
+    Description NVARCHAR(MAX));
 
+DROP TABLE IF EXISTS Customers_Staging;
 
--- Create Schemas if they don't exist
-IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'dim')
-BEGIN
-    EXEC('CREATE SCHEMA dim');
-END
+CREATE TABLE Customers_Staging (
+    staging_raw_customer_id INT IDENTITY(1,1) PRIMARY KEY,
+    CustomerID NVARCHAR(10),
+    CompanyName NVARCHAR(100),
+    ContactName NVARCHAR(100),
+    ContactTitle NVARCHAR(50),
+    [Address] NVARCHAR(200),
+    City NVARCHAR(50),
+    Region NVARCHAR(50),
+    PostalCode NVARCHAR(20),
+    Country NVARCHAR(50),
+    Phone NVARCHAR(30),
+    Fax NVARCHAR(30));
 
+DROP TABLE IF EXISTS Employees_Staging;
 
-IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'fact')
-BEGIN
-    EXEC('CREATE SCHEMA fact');
-END
+CREATE TABLE Employees_Staging (
+    staging_raw_employee_id INT IDENTITY(1,1) PRIMARY KEY,
+    EmployeeID INT,
+    LastName NVARCHAR(50),
+    FirstName NVARCHAR(50),
+    Title NVARCHAR(50),
+    TitleOfCourtesy NVARCHAR(50),
+    BirthDate DATETIME,
+    HireDate DATETIME,
+    [Address] NVARCHAR(200),
+    City NVARCHAR(50),
+    Region NVARCHAR(50),
+    PostalCode NVARCHAR(20),
+    Country NVARCHAR(50),
+    HomePhone NVARCHAR(30),
+    Extension NVARCHAR(10),
+    Notes NVARCHAR(MAX),
+    ReportsTo INT,
+    PhotoPath NVARCHAR(200));
 
+DROP TABLE IF EXISTS OrderDetails_Staging;
 
--- Drop tables if they exist to ensure a clean state
-IF OBJECT_ID('fact.FactOrderDetails', 'U') IS NOT NULL
-    DROP TABLE fact.FactOrderDetails;
+CREATE TABLE OrderDetails_Staging (
+    staging_raw_orderdetail_id INT IDENTITY(1,1) PRIMARY KEY,
+    OrderID INT,
+    ProductID INT,
+    UnitPrice DECIMAL(18,2),
+    Quantity INT,
+    Discount DECIMAL(5,2));
 
-IF OBJECT_ID('dim.DimProducts', 'U') IS NOT NULL
-    DROP TABLE dim.DimProducts;
+DROP TABLE IF EXISTS Orders_Staging;
 
-IF OBJECT_ID('dim.DimCategories', 'U') IS NOT NULL
-    DROP TABLE dim.DimCategories;
+CREATE TABLE Orders_Staging (
+    staging_raw_order_id INT IDENTITY(1,1) PRIMARY KEY,
+    OrderID INT,
+    CustomerID NVARCHAR(10),
+    EmployeeID INT,
+    OrderDate DATETIME,
+    RequiredDate DATETIME,
+    ShippedDate DATETIME,
+    ShipVia INT,
+    Freight DECIMAL(18,2),
+    ShipName NVARCHAR(100),
+    ShipAddress NVARCHAR(200),
+    ShipCity NVARCHAR(50),
+    ShipRegion NVARCHAR(50),
+    ShipPostalCode NVARCHAR(20),
+    ShipCountry NVARCHAR(50),
+    TerritoryID INT);
 
-IF OBJECT_ID('dim.DimCustomers', 'U') IS NOT NULL
-    DROP TABLE dim.DimCustomers;
+DROP TABLE IF EXISTS Products_Staging;
 
-IF OBJECT_ID('dim.DimTerritories', 'U') IS NOT NULL
-    DROP TABLE dim.DimTerritories;
+CREATE TABLE Products_Staging (
+    staging_raw_product_id INT IDENTITY(1,1) PRIMARY KEY,
+    ProductID INT,
+    ProductName NVARCHAR(100),
+    SupplierID INT,
+    CategoryID INT,
+    QuantityPerUnit NVARCHAR(50),
+    UnitPrice DECIMAL(18,2),
+    UnitsInStock SMALLINT,
+    UnitsOnOrder SMALLINT,
+    ReorderLevel SMALLINT,
+    Discontinued BIT);
 
-IF OBJECT_ID('dim.DimRegion', 'U') IS NOT NULL
-    DROP TABLE dim.DimRegion;
+DROP TABLE IF EXISTS Regions_Staging;
 
-IF OBJECT_ID('dim.DimDate', 'U') IS NOT NULL
-    DROP TABLE dim.DimDate;
+CREATE TABLE Regions_Staging (
+    staging_raw_region_id INT IDENTITY(1,1) PRIMARY KEY,
+    RegionID INT,
+    RegionDescription NVARCHAR(100),
+    RegionCategory NVARCHAR(50),
+    RegionImportance NVARCHAR(50));
 
+DROP TABLE IF EXISTS Shippers_Staging;
 
--- Create DimRegion table with a primary key
-CREATE TABLE dim.DimRegion (
-    RegionID INT PRIMARY KEY, -- Primary Key
-    RegionName NVARCHAR(100) NOT NULL
-);
+CREATE TABLE Shippers_Staging (
+    staging_raw_shipper_id INT IDENTITY(1,1) PRIMARY KEY,
+    ShipperID INT,
+    CompanyName NVARCHAR(100),
+    Phone NVARCHAR(30));
 
+DROP TABLE IF EXISTS Suppliers_Staging;
 
--- Create DimTerritories table with a foreign key referencing DimRegion
-CREATE TABLE dim.DimTerritories (
-    TerritoryID INT PRIMARY KEY, -- Primary Key
-    TerritoryName NVARCHAR(100) NOT NULL,
-    RegionID INT NOT NULL,
-    FOREIGN KEY (RegionID) REFERENCES dim.DimRegion(RegionID)
-);
+CREATE TABLE Suppliers_Staging (
+    staging_raw_supplier_id INT IDENTITY(1,1) PRIMARY KEY,
+    SupplierID INT,
+    CompanyName NVARCHAR(100),
+    ContactName NVARCHAR(100),
+    ContactTitle NVARCHAR(50),
+    [Address] NVARCHAR(200),
+    City NVARCHAR(50),
+    Region NVARCHAR(50),
+    PostalCode NVARCHAR(20),
+    Country NVARCHAR(50),
+    Phone NVARCHAR(30),
+    Fax NVARCHAR(30),
+    HomePage NVARCHAR(MAX));
 
+DROP TABLE IF EXISTS Territories_Staging;
 
--- Create DimCustomers table with a foreign key referencing DimTerritories
-CREATE TABLE dim.DimCustomers (
-    CustomerID INT PRIMARY KEY, -- Primary Key
-    CustomerName NVARCHAR(100) NOT NULL,
-    -- Add other customer fields as needed
-    TerritoryID INT,
-    FOREIGN KEY (TerritoryID) REFERENCES dim.DimTerritories(TerritoryID)
-);
-
-
--- Create DimCategories table
-CREATE TABLE dim.DimCategories (
-    CategoryID INT PRIMARY KEY, -- Primary Key
-    CategoryName NVARCHAR(100) NOT NULL,
-    Description NVARCHAR(MAX)
-);
-
-
--- Create DimProducts table with a foreign key referencing DimCategories
-CREATE TABLE dim.DimProducts (
-    ProductID INT PRIMARY KEY, -- Primary Key
-    ProductName NVARCHAR(100) NOT NULL,
-    CategoryID INT NOT NULL,
-    FOREIGN KEY (CategoryID) REFERENCES dim.DimCategories(CategoryID)
-);
-
-
--- Create DimDate table
-CREATE TABLE dim.DimDate (
-    DateID INT PRIMARY KEY, -- Primary Key
-    Date DATE NOT NULL,
-    Year INT,
-    Month INT,
-    Day INT
-);
-
-
--- Create FactOrderDetails table with foreign keys referencing DimCustomers, DimProducts, and DimDate
-CREATE TABLE fact.FactOrderDetails (
-    OrderDetailID INT PRIMARY KEY, -- Primary Key
-    OrderID INT NOT NULL,
-    ProductID INT NOT NULL,
-    CustomerID INT NOT NULL,
-    DateID INT NOT NULL,
-    Quantity INT NOT NULL,
-    UnitPrice DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (ProductID) REFERENCES dim.DimProducts(ProductID),
-    FOREIGN KEY (CustomerID) REFERENCES dim.DimCustomers(CustomerID),
-    FOREIGN KEY (DateID) REFERENCES dim.DimDate(DateID)
-);
-
-
--- Add additional table creation scripts below following the same pattern
--- Example:
--- CREATE TABLE dim.AnotherDimension (
---     DimensionID INT PRIMARY KEY,
---     DimensionName NVARCHAR(100) NOT NULL
--- );
+CREATE TABLE Territories_Staging (
+    staging_raw_territory_id INT IDENTITY(1,1) PRIMARY KEY,
+    TerritoryID NVARCHAR(20),
+    TerritoryDescription NVARCHAR(100),
+    TerritoryCode NVARCHAR(20),
+    RegionID INT);
