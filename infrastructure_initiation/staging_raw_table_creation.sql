@@ -1,3 +1,5 @@
+USE ORDER_DDS;
+
 DROP TABLE IF EXISTS Categories_Staging;
 
 CREATE TABLE Categories_Staging (

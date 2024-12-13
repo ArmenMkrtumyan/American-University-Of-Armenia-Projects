@@ -158,7 +158,7 @@ def ingest_multiple_tables(start_date, end_date):
     return setup_dimensional_tables(start_date, end_date)
 
 
-def create_all_tables(start_date, end_date):
+def create_staging_tables(start_date, end_date):
     """
     Task to create all necessary tables before data ingestion.
 
@@ -305,3 +305,72 @@ def delete_data_from_table(schema, table_name, start_date, end_date):
     except Exception as e:
         logging.error(f"Failed to delete data from '{schema}.{table_name}': {e}")
         return {'success': False, 'message': str(e)}
+
+def create_dim_scd_sor_tables(start_date, end_date):
+    """
+    Task to create all necessary tables before data ingestion.
+
+    :param start_date: Not used in this task but included for consistency.
+    :param end_date: Not used in this task but included for consistency.
+    :return: Dictionary indicating success status.
+    """
+    connection = None
+    try:
+        connection = connect_to_database(CONFIG_FILE, DATABASE_SECTION)
+        logging.info("Database connection established for table creation.")
+
+        # Define table configurations
+        tables = [
+            {
+                'schema': 'dim',
+                'table_name': 'dim_customers'
+            },
+            {
+                'schema': 'dim',
+                'table_name': 'dim_products'
+            },
+            {
+                'schema': 'dim',
+                'table_name': 'dim_customers_scd'
+            },
+            {
+                'schema': 'dim',
+                'table_name': 'dim_products_scd'
+            },
+            {
+                'schema': 'dim',
+                'table_name': 'dim_customers_sor'
+            },
+            {
+                'schema': 'dim',
+                'table_name': 'dim_products_sor'
+            },
+            # Add more tables as needed
+        ]
+
+        # Begin transaction
+        connection.autocommit = False
+        cursor = connection.cursor()
+
+        # Create tables
+        for table in tables:
+            result = create_table(connection, table['schema'], table['table_name'])
+            if not result['success']:
+                raise Exception(result.get('message'))
+
+        # Commit transaction if all table creations succeeded
+        connection.commit()
+        logging.info("All tables created successfully.")
+        return {'success': True}
+
+    except Exception as e:
+        if connection:
+            connection.rollback()
+            logging.error("Transaction rolled back due to an error in table creation.")
+        logging.error(f"Error in create_all_tables: {e}")
+        return {'success': False, 'message': str(e)}
+
+    finally:
+        if connection:
+            connection.close()
+            logging.info("Database connection closed.")
