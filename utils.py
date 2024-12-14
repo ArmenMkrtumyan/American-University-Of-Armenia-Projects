@@ -4,6 +4,15 @@ import configparser
 import logging
 import os
 import pyodbc
+import uuid
+
+def generate_uuid():
+    """
+    Generates a unique UUID string.
+
+    :return: A string representation of a UUID.
+    """
+    return str(uuid.uuid4())
 
 def connect_to_database(config_file, section):
     """
@@ -11,7 +20,7 @@ def connect_to_database(config_file, section):
 
     :param config_file: Path to the configuration file.
     :param section: Section in the configuration file to use.
-    :return: pyodbc connection object.
+    :return: pyodbc connection object or None if connection fails.
     """
     parser = configparser.ConfigParser()
     if not os.path.exists(config_file):
@@ -34,18 +43,21 @@ def connect_to_database(config_file, section):
 
     try:
         connection = pyodbc.connect(conn_str)
+        logging.info(f"Successfully connected to the database: {section}")
         return connection
     except pyodbc.Error as e:
         logging.error(f"Failed to connect to database: {e}")
         return None
 
-def execute_sql_script(connection, script_path):
+def execute_sql_script(connection, script_path, params=None):
     """
     Reads and executes an SQL script from a file with optional parameters.
 
     :param connection: Active pyodbc connection object.
     :param script_path: Path to the SQL script file.
     :param params: Dictionary of parameters to format the SQL script.
+    :raises FileNotFoundError: If the SQL script file does not exist.
+    :raises Exception: If executing the SQL script fails.
     """
     if not os.path.exists(script_path):
         logging.error(f"SQL script '{script_path}' does not exist.")
@@ -54,10 +66,18 @@ def execute_sql_script(connection, script_path):
     with open(script_path, 'r') as file:
         sql_script = file.read()
 
+    if params:
+        try:
+            sql_script = sql_script.format(**params)
+        except KeyError as e:
+            logging.error(f"Missing parameter in SQL script formatting: {e}")
+            raise
+
     cursor = connection.cursor()
     try:
         cursor.execute(sql_script)
-        connection.commit()  # Changed from cursor.commit() to connection.commit()
+        connection.commit()
+        logging.info(f"Successfully executed SQL script: {script_path}")
     except Exception as e:
         logging.error(f"Failed to execute SQL script '{script_path}': {e}")
         connection.rollback()

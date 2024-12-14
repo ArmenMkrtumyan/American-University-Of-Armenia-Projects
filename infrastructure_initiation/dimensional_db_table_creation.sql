@@ -1,3 +1,6 @@
+-- ================================================================
+-- Script 1: Create Dimension and Fact Tables with Foreign Keys to Staging
+-- ================================================================
 USE ORDER_DDS;
 
 
@@ -15,6 +18,7 @@ IF OBJECT_ID('dbo.DimSuppliers','U')    IS NOT NULL DROP TABLE dbo.DimSuppliers;
 IF OBJECT_ID('dbo.DimShippers','U')     IS NOT NULL DROP TABLE dbo.DimShippers;
 IF OBJECT_ID('dbo.DimRegion','U')       IS NOT NULL DROP TABLE dbo.DimRegion;
 IF OBJECT_ID('dbo.Dim_SOR','U')         IS NOT NULL DROP TABLE dbo.Dim_SOR;
+
 
 
 ---------------------------------------------------------------------------
@@ -164,7 +168,7 @@ CREATE TABLE dbo.Dim_SOR (
 -- 2) ADD FOREIGN KEY CONSTRAINTS
 ---------------------------------------------------------------------------
 ALTER TABLE dbo.DimEmployees
-    ADD CONSTRAINT FK_DimEmployees_RepoartsTo
+    ADD CONSTRAINT FK_DimEmployees_ReportsTo
     FOREIGN KEY (ReportsTo) REFERENCES dbo.DimEmployees(EmployeeID_sk_pk)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION;
@@ -232,227 +236,111 @@ ALTER TABLE dbo.OrderDetails
     ON DELETE CASCADE
     ON UPDATE CASCADE;
 
--------------------------------------------------------------------------------
--- 3) DimCategories SCD 1 with Delete
--------------------------------------------------------------------------------
-
-DROP TABLE IF EXISTS dbo.DimCategories_SCD1;
-
-
-CREATE TABLE dbo.DimCategories_SCD1 (
-    CategoriesID_sk_pk INT PRIMARY KEY IDENTITY(1, 1), 
-    CategoryID_nk      INT,                            
-    CategoryName       NVARCHAR(255) NOT NULL,
-    [Description]      VARCHAR(500)  NULL
-);
-
-MERGE dbo.DimCategories_SCD1 AS DST
-USING dbo.Categories_Staging AS SRC
-    ON (DST.CategoryID_nk = SRC.CategoryID)
-WHEN MATCHED 
-    AND (
-       ISNULL(DST.CategoryName, '') <> ISNULL(SRC.CategoryName, '') 
-       OR ISNULL(DST.[Description], '') <> ISNULL(SRC.[Description], '')
-    )
-THEN
-    UPDATE
-    SET
-        DST.CategoryName  = SRC.CategoryName,
-        DST.[Description] = SRC.[Description]
-WHEN NOT MATCHED BY TARGET
-THEN
-    INSERT (CategoryID_nk, CategoryName, [Description])
-    VALUES (SRC.CategoryID, SRC.CategoryName, SRC.[Description])
-WHEN NOT MATCHED BY SOURCE
-THEN
-    DELETE;
-
-SELECT * FROM dbo.DimCategories_SCD1;
-
-
-
-
--------------------------------------------------------------------------------
--- 4) DimCustomers SCD 2
--------------------------------------------------------------------------------
-
-DROP TABLE IF EXISTS dbo.DimCustomers_SCD2;
-CREATE TABLE dbo.DimCustomers_SCD2
-(
-    DimCustomersSK INT IDENTITY(1,1) PRIMARY KEY,
-    CustomerID_nk  NVARCHAR(10)  NOT NULL,
-    CompanyName    NVARCHAR(100) NOT NULL,
-    ContactName    NVARCHAR(100),
-    ContactTitle   NVARCHAR(50),
-    [Address]      NVARCHAR(200),
-    City           NVARCHAR(50),
-    Region         NVARCHAR(50),
-    PostalCode     NVARCHAR(20),
-    Country        NVARCHAR(50),
-    Phone          NVARCHAR(30),
-    Fax            NVARCHAR(30),
-    ValidFrom      INT,
-    ValidTo        INT,
-    IsCurrent      BIT
-);
-
-IF OBJECT_ID('dbo.Customers_Staging','U') IS NULL
-BEGIN
-    CREATE TABLE dbo.Customers_Staging
-    (
-        CustomerID   NVARCHAR(10),
-        CompanyName  NVARCHAR(100),
-        ContactName  NVARCHAR(100),
-        ContactTitle NVARCHAR(50),
-        [Address]    NVARCHAR(200),
-        City         NVARCHAR(50),
-        Region       NVARCHAR(50),
-        PostalCode   NVARCHAR(20),
-        Country      NVARCHAR(50),
-        Phone        NVARCHAR(30),
-        Fax          NVARCHAR(30)
-    );
-END;
-
-DECLARE @Yesterday INT = (YEAR(DATEADD(DAY, -1, GETDATE())) * 10000) + (MONTH(DATEADD(DAY, -1, GETDATE())) * 100) + DAY(DATEADD(DAY, -1, GETDATE()));
-DECLARE @Today INT = (YEAR(GETDATE()) * 10000) + (MONTH(GETDATE()) * 100) + DAY(GETDATE());
-
-IF OBJECT_ID('tempdb..#DimCustomersUpdates') IS NOT NULL
-    DROP TABLE #DimCustomersUpdates;
-
-CREATE TABLE #DimCustomersUpdates
-(
-    ActionTaken   NVARCHAR(10),
-    CustomerID    NVARCHAR(10),
-    CompanyName   NVARCHAR(100),
-    ContactName   NVARCHAR(100),
-    ContactTitle  NVARCHAR(50),
-    [Address]     NVARCHAR(200),
-    City          NVARCHAR(50),
-    Region        NVARCHAR(50),
-    PostalCode    NVARCHAR(20),
-    Country       NVARCHAR(50),
-    Phone         NVARCHAR(30),
-    Fax           NVARCHAR(30)
-);
-
-MERGE dbo.DimCustomers_SCD2 AS DST
-USING dbo.Customers_Staging AS SRC
-    ON DST.CustomerID_nk = SRC.CustomerID
-WHEN NOT MATCHED BY TARGET THEN
-    INSERT (
-        CustomerID_nk,
-        CompanyName,
-        ContactName,
-        ContactTitle,
-        [Address],
-        City,
-        Region,
-        PostalCode,
-        Country,
-        Phone,
-        Fax,
-        ValidFrom,
-        IsCurrent
-    )
-    VALUES (
-        SRC.CustomerID,
-        SRC.CompanyName,
-        SRC.ContactName,
-        SRC.ContactTitle,
-        SRC.[Address],
-        SRC.City,
-        SRC.Region,
-        SRC.PostalCode,
-        SRC.Country,
-        SRC.Phone,
-        SRC.Fax,
-        @Today,
-        1
-    )
-WHEN MATCHED 
-     AND DST.IsCurrent = 1
-     AND (
-            ISNULL(DST.CompanyName,'') <> ISNULL(SRC.CompanyName,'')
-         OR ISNULL(DST.ContactName,'') <> ISNULL(SRC.ContactName,'')
-         OR ISNULL(DST.ContactTitle,'') <> ISNULL(SRC.ContactTitle,'')
-         OR ISNULL(DST.[Address],'') <> ISNULL(SRC.[Address],'')
-         OR ISNULL(DST.City,'') <> ISNULL(SRC.City,'')
-         OR ISNULL(DST.Region,'') <> ISNULL(SRC.Region,'')
-         OR ISNULL(DST.PostalCode,'') <> ISNULL(SRC.PostalCode,'')
-         OR ISNULL(DST.Country,'') <> ISNULL(SRC.Country,'')
-         OR ISNULL(DST.Phone,'') <> ISNULL(SRC.Phone,'')
-         OR ISNULL(DST.Fax,'') <> ISNULL(SRC.Fax,'')
-        )
-THEN 
-    UPDATE
-        SET DST.IsCurrent = 0,
-            DST.ValidTo   = @Yesterday
-    OUTPUT
-        $action,
-        SRC.CustomerID,
-        SRC.CompanyName,
-        SRC.ContactName,
-        SRC.ContactTitle,
-        SRC.[Address],
-        SRC.City,
-        SRC.Region,
-        SRC.PostalCode,
-        SRC.Country,
-        SRC.Phone,
-        SRC.Fax
-    INTO #DimCustomersUpdates;
-
-INSERT INTO dbo.DimCustomers_SCD2
-(
-    CustomerID_nk,
-    CompanyName,
-    ContactName,
-    ContactTitle,
-    [Address],
-    City,
-    Region,
-    PostalCode,
-    Country,
-    Phone,
-    Fax,
-    ValidFrom,
-    IsCurrent
-)
-SELECT
-    U.CustomerID,
-    U.CompanyName,
-    U.ContactName,
-    U.ContactTitle,
-    U.[Address],
-    U.City,
-    U.Region,
-    U.PostalCode,
-    U.Country,
-    U.Phone,
-    U.Fax,
-    @Today,
-    1
-FROM #DimCustomersUpdates U
-WHERE U.ActionTaken = 'UPDATE';
-
-
 
 ---------------------------------------------------------------------------
--- 3) ADD FOREIGN KEY CONSTRAINT FOR Dim_SOR IF REQUIRED
+-- 3) ADD FOREIGN KEY CONSTRAINTS TO DIM TABLES FOR STAGING RAW IDs
 ---------------------------------------------------------------------------
--- If there are tables that should reference Dim_SOR, add foreign key constraints here.
--- Example:
--- ALTER TABLE dbo.SomeTable
---     ADD CONSTRAINT FK_SomeTable_Dim_SOR
---     FOREIGN KEY (SOR_sk_fk) REFERENCES dbo.Dim_SOR(SORID_sk_pk)
---     ON DELETE CASCADE
---     ON UPDATE CASCADE;
---
+-- Ensure that staging tables are created before adding these constraints.
+
+-- 3.1) DimCategories Foreign Key to Categories_Staging
+ALTER TABLE dbo.DimCategories
+    ADD staging_raw_category_id INT NULL;
+
+
+ALTER TABLE dbo.DimCategories
+    ADD CONSTRAINT FK_DimCategories_Categories_Staging
+    FOREIGN KEY (staging_raw_category_id) REFERENCES dbo.Categories_Staging(staging_raw_category_id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE;
+
+
+-- 3.2) DimCustomers Foreign Key to Customers_Staging
+ALTER TABLE dbo.DimCustomers
+    ADD staging_raw_customer_id INT NULL;
+
+
+ALTER TABLE dbo.DimCustomers
+    ADD CONSTRAINT FK_DimCustomers_Customers_Staging
+    FOREIGN KEY (staging_raw_customer_id) REFERENCES dbo.Customers_Staging(staging_raw_customer_id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE;
+
+
+-- 3.3) DimEmployees Foreign Key to Employees_Staging
+ALTER TABLE dbo.DimEmployees
+    ADD staging_raw_employee_id INT NULL;
+
+
+ALTER TABLE dbo.DimEmployees
+    ADD CONSTRAINT FK_DimEmployees_Employees_Staging
+    FOREIGN KEY (staging_raw_employee_id) REFERENCES dbo.Employees_Staging(staging_raw_employee_id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE;
+
+
+-- 3.4) DimRegion Foreign Key to Regions_Staging
+ALTER TABLE dbo.DimRegion
+    ADD staging_raw_region_id INT NULL;
+
+
+ALTER TABLE dbo.DimRegion
+    ADD CONSTRAINT FK_DimRegion_Regions_Staging
+    FOREIGN KEY (staging_raw_region_id) REFERENCES dbo.Regions_Staging(staging_raw_region_id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE;
+
+
+-- 3.5) DimShippers Foreign Key to Shippers_Staging
+ALTER TABLE dbo.DimShippers
+    ADD staging_raw_shipper_id INT NULL;
+
+
+ALTER TABLE dbo.DimShippers
+    ADD CONSTRAINT FK_DimShippers_Shippers_Staging
+    FOREIGN KEY (staging_raw_shipper_id) REFERENCES dbo.Shippers_Staging(staging_raw_shipper_id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE;
+
+
+-- 3.6) DimSuppliers Foreign Key to Suppliers_Staging
+ALTER TABLE dbo.DimSuppliers
+    ADD staging_raw_supplier_id INT NULL;
+
+
+ALTER TABLE dbo.DimSuppliers
+    ADD CONSTRAINT FK_DimSuppliers_Suppliers_Staging
+    FOREIGN KEY (staging_raw_supplier_id) REFERENCES dbo.Suppliers_Staging(staging_raw_supplier_id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE;
+
+
+-- 3.7) DimTerritories Foreign Key to Territories_Staging
+ALTER TABLE dbo.DimTerritories
+    ADD staging_raw_territory_id INT NULL;
+
+
+ALTER TABLE dbo.DimTerritories
+    ADD CONSTRAINT FK_DimTerritories_Territories_Staging
+    FOREIGN KEY (staging_raw_territory_id) REFERENCES dbo.Territories_Staging(staging_raw_territory_id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE;
+
+
+-- 3.8) DimProducts Foreign Key to Products_Staging
+ALTER TABLE dbo.DimProducts
+    ADD staging_raw_product_id INT NULL;
+
+
+ALTER TABLE dbo.DimProducts
+    ADD CONSTRAINT FK_DimProducts_Products_Staging
+    FOREIGN KEY (staging_raw_product_id) REFERENCES dbo.Products_Staging(staging_raw_product_id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE;
+
+
 ---------------------------------------------------------------------------
 -- 4) FACT TABLE SNAPSHOT
 ---------------------------------------------------------------------------
-
 MERGE dbo.FactOrders AS DST
 USING (
     SELECT
@@ -550,3 +438,27 @@ VALUES (
 
 WHEN NOT MATCHED BY SOURCE
 THEN DELETE;
+
+
+---------------------------------------------------------------------------
+-- 5) ADD FOREIGN KEY CONSTRAINT FOR Dim_SOR IF REQUIRED
+---------------------------------------------------------------------------
+-- If there are tables that should reference Dim_SOR, add foreign key constraints here.
+-- Example:
+-- ALTER TABLE dbo.SomeTable
+--     ADD CONSTRAINT FK_SomeTable_Dim_SOR
+--     FOREIGN KEY (SOR_sk_fk) REFERENCES dbo.Dim_SOR(SORID_sk_pk)
+--     ON DELETE CASCADE
+--     ON UPDATE CASCADE;
+
+
+---------------------------------------------------------------------------
+-- 6) SLOWLY CHANGING DIMENSIONS (SCD) HANDLING
+---------------------------------------------------------------------------
+-- (Include your existing SCD1, SCD2, SCD3, and SCD4 implementations here.)
+-- Ensure that any table dependencies are resolved before executing this section.
+
+
+---------------------------------------------------------------------------
+-- END OF SCRIPT 1
+---------------------------------------------------------------------------
