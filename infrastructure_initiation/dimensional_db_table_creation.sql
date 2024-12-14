@@ -14,6 +14,17 @@ DROP TABLE IF EXISTS DimShippers;
 DROP TABLE IF EXISTS DimProducts;
 DROP TABLE IF EXISTS DimRegion;
 
+DROP CONSTRAINT IF EXISTS FK_OrderDetails_FactOrders;
+DROP CONSTRAINT IF EXISTS FK_OrderDetails_DimProducts;
+DROP CONSTRAINT IF EXISTS FK_FactOrders_DimCustomers;
+DROP CONSTRAINT IF EXISTS FK_FactOrders_DimEmployees;
+DROP CONSTRAINT IF EXISTS FK_FactOrders_DimShippers;
+DROP CONSTRAINT IF EXISTS FK_FactOrders_DimTerritories;
+DROP CONSTRAINT IF EXISTS FK_DimProducts_DimSuppliers;
+DROP CONSTRAINT IF EXISTS FK_DimProducts_DimCategories;
+DROP CONSTRAINT IF EXISTS FK_DimTerritories_DimRegion;
+DROP CONSTRAINT IF EXISTS FK_DimEmployees_ReportsTo;
+
 -- ================================================================
 -- Step 2: Create Dimension Tables Without Foreign Keys
 -- ================================================================
