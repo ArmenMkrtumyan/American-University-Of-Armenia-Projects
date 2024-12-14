@@ -146,7 +146,7 @@ CREATE TABLE OrderDetails (
     Quantity INT NOT NULL,
     Discount DECIMAL(5,2)
 );
-GO
+
 
 
 -------------------------------------------------------------------------------
@@ -202,7 +202,7 @@ ALTER TABLE OrderDetails
     ADD CONSTRAINT FK_OrderDetails_DimProducts
     FOREIGN KEY (Product_sk_fk) REFERENCES DimProducts(ProductID_sk_pk)
     ON DELETE CASCADE ON UPDATE CASCADE;
-GO
+
 
 
 -------------------------------------------------------------------------------
@@ -307,4 +307,3 @@ VALUES (
 
 WHEN NOT MATCHED BY SOURCE
 THEN DELETE;
-

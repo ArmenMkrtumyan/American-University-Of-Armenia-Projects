@@ -5,10 +5,9 @@ IF DB_ID('ORDER_DDS') IS NULL
 BEGIN
     CREATE DATABASE ORDER_DDS;
 END
-GO
 
 USE ORDER_DDS;
-GO
+
 
 -------------------------------------------------------------------------------
 -- 0) DROP ANY EXISTING TABLES (STAGING + DIM + FACT) IN PROPER ORDER
