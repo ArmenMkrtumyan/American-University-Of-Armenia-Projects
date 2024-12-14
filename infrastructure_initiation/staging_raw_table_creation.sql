@@ -1,16 +1,34 @@
+-------------------------------------------------------------------------------
+-- CREATE / USE THE ORDER_DDS DATABASE
+-------------------------------------------------------------------------------
+IF DB_ID('ORDER_DDS') IS NULL
+BEGIN
+    CREATE DATABASE ORDER_DDS;
+END
+GO
+
 USE ORDER_DDS;
+GO
 
-DROP TABLE IF EXISTS Categories_Staging;
-DROP TABLE IF EXISTS Customers_Staging;
-DROP TABLE IF EXISTS Employees_Staging;
-DROP TABLE IF EXISTS OrderDetails_Staging;
-DROP TABLE IF EXISTS Orders_Staging;
-DROP TABLE IF EXISTS Products_Staging;
-DROP TABLE IF EXISTS Regions_Staging;
-DROP TABLE IF EXISTS Shippers_Staging;
-DROP TABLE IF EXISTS Suppliers_Staging;
-DROP TABLE IF EXISTS Territories_Staging;
+-------------------------------------------------------------------------------
+-- 0) DROP ANY EXISTING TABLES (STAGING + DIM + FACT) IN PROPER ORDER
+-------------------------------------------------------------------------------
 
+
+IF OBJECT_ID('dbo.Categories_Staging','U') IS NOT NULL DROP TABLE dbo.Categories_Staging;
+IF OBJECT_ID('dbo.Customers_Staging','U')  IS NOT NULL DROP TABLE dbo.Customers_Staging;
+IF OBJECT_ID('dbo.Employees_Staging','U')  IS NOT NULL DROP TABLE dbo.Employees_Staging;
+IF OBJECT_ID('dbo.OrderDetails_Staging','U') IS NOT NULL DROP TABLE dbo.OrderDetails_Staging;
+IF OBJECT_ID('dbo.Orders_Staging','U')     IS NOT NULL DROP TABLE dbo.Orders_Staging;
+IF OBJECT_ID('dbo.Products_Staging','U')   IS NOT NULL DROP TABLE dbo.Products_Staging;
+IF OBJECT_ID('dbo.Regions_Staging','U')    IS NOT NULL DROP TABLE dbo.Regions_Staging;
+IF OBJECT_ID('dbo.Shippers_Staging','U')   IS NOT NULL DROP TABLE dbo.Shippers_Staging;
+IF OBJECT_ID('dbo.Suppliers_Staging','U')  IS NOT NULL DROP TABLE dbo.Suppliers_Staging;
+IF OBJECT_ID('dbo.Territories_Staging','U') IS NOT NULL DROP TABLE dbo.Territories_Staging;
+
+-------------------------------------------------------------------------------
+-- 1) CREATE STAGING TABLES
+-------------------------------------------------------------------------------
 CREATE TABLE Categories_Staging (
     staging_raw_category_id INT IDENTITY(1,1) PRIMARY KEY,
     CategoryID INT,
@@ -35,13 +53,14 @@ CREATE TABLE Customers_Staging (
 
 CREATE TABLE Employees_Staging (
     staging_raw_employee_id INT IDENTITY(1,1) PRIMARY KEY,
+    EmployeeID INT,
     LastName NVARCHAR(50),
     FirstName NVARCHAR(50),
     Title NVARCHAR(50),
     TitleOfCourtesy NVARCHAR(50),
     BirthDate DATETIME,
     HireDate DATETIME,
-    Address NVARCHAR(200),
+    [Address] NVARCHAR(200),
     City NVARCHAR(50),
     Region NVARCHAR(50),
     PostalCode NVARCHAR(20),
@@ -65,6 +84,7 @@ CREATE TABLE OrderDetails_Staging (
 
 CREATE TABLE Orders_Staging (
     staging_raw_order_id INT IDENTITY(1,1) PRIMARY KEY,
+    OrderID INT,   -- Business key from source
     CustomerID NVARCHAR(10),
     EmployeeID INT,
     OrderDate DATETIME,
@@ -83,6 +103,7 @@ CREATE TABLE Orders_Staging (
 
 CREATE TABLE Products_Staging (
     staging_raw_product_id INT IDENTITY(1,1) PRIMARY KEY,
+    ProductID INT,
     ProductName NVARCHAR(100),
     SupplierID INT,
     CategoryID INT,
@@ -124,6 +145,7 @@ CREATE TABLE Suppliers_Staging (
 
 CREATE TABLE Territories_Staging (
     staging_raw_territory_id INT IDENTITY(1,1) PRIMARY KEY,
+    TerritoryID INT,
     TerritoryDescription NVARCHAR(100),
     RegionID INT
 );
