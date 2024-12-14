@@ -1,0 +1,18 @@
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Initialized DimensionalDataFlow with Execution ID: 5f2fe972-0c65-4eac-bf7a-e0c969412a7f
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Starting Dimensional Data Flow execution.
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Executing Task 1: Create Staging Tables.
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Successfully connected to the database: ORDER_DDS
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Database connection established for table creation.
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Successfully executed SQL script: /Users/armenmkrtumyan/Desktop/Group1_DS206_GroupProject2/infrastructure_initiation/staging_raw_table_creation.sql
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Table 'staging' created successfully.
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - All tables created successfully.
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Database connection closed.
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Executing Task 2: Create Dim Tables, SCDs, and SORs.
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Successfully connected to the database: ORDER_DDS
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Database connection established for table creation.
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Successfully executed SQL script: /Users/armenmkrtumyan/Desktop/Group1_DS206_GroupProject2/infrastructure_initiation/dimensional_db_table_creation.sql
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Table 'dim, sor, scd' created successfully.
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - All dim, scd, sor tables created successfully.
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Database connection closed.
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Dimensional Data Flow executed successfully.
+2024-12-14 15:50:55 - 5f2fe972-0c65-4eac-bf7a-e0c969412a7f - INFO - Dimensional data pipeline executed successfully.

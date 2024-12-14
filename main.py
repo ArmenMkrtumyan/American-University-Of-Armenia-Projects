@@ -2,13 +2,6 @@
 
 from pipeline_dimensional_data.flow import DimensionalDataFlow
 from datetime import datetime
-import logging
-
-# Configure logging (if not already configured in utils.py and tasks.py)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
 
 if __name__ == "__main__":
     # Define the start and end dates for the data ingestion
@@ -19,10 +12,13 @@ if __name__ == "__main__":
     # Initialize the data flow
     data_flow = DimensionalDataFlow()
 
+    # Get the logger from the data flow
+    logger = data_flow.logger
+
     # Execute the data flow
     result = data_flow.exec(start_date, end_date)
 
     if result['success']:
-        logging.info("Dimensional data pipeline executed successfully.")
+        logger.info("Dimensional data pipeline executed successfully.")
     else:
-        logging.error(f"Dimensional data pipeline failed: {result.get('message')}")
+        logger.error(f"Dimensional data pipeline failed: {result.get('message')}")
