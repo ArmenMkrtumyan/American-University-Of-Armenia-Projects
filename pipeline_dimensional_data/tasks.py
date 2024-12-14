@@ -252,6 +252,11 @@ def create_scd_tables(start_date, end_date, sql_filename, logger):
 
         # Commit transaction if all table creations succeeded
         connection.commit()
+
+        sql_filename = "populate_sor.sql"
+        result = create_table(connection, sql_filename, 'scd', logger)
+        connection.commit()
+
         logger.info("All SCD tables created successfully.")
         return {'success': True}
 

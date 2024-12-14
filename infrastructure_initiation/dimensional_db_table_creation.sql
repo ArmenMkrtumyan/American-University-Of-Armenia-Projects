@@ -158,9 +158,12 @@ CREATE TABLE dbo.OrderDetails (
 );
 
 
-CREATE TABLE dbo.Dim_SOR (
-    SORID_sk_pk INT IDENTITY(1,1) PRIMARY KEY,
-    RawTableName NVARCHAR(100) NOT NULL
+CREATE TABLE Dim_SOR (
+    DimSORID_sk_pk INT IDENTITY(1,1) PRIMARY KEY,
+    StagingTableName NVARCHAR(100) NOT NULL,
+    StagingRawID INT NOT NULL,
+    LoadDateTime DATETIME DEFAULT GETDATE(),
+    UNIQUE (StagingTableName, StagingRawID)
 );
 
 
