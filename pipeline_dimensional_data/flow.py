@@ -3,10 +3,11 @@
 from utils import generate_uuid
 from pipeline_dimensional_data.tasks import (
     create_staging_tables,
-    create_dim_scd_sor_tables,
-    ingest_all_tables,
-    ingest_multiple_tables,
-    delete_data_from_table
+    create_dim_sor_tables,
+    create_scd_tables
+    # ingest_all_tables,
+    # ingest_multiple_tables,
+    # delete_data_from_table
 )
 from py_logging import setup_logger
 
@@ -42,12 +43,20 @@ class DimensionalDataFlow:
             return {'success': False, 'message': f"Task 1 Failed: {result.get('message')}"}
 
         # Task 2: Create Dim Tables, SCDs, and SORs
-        self.logger.info("Executing Task 2: Create Dim Tables, SCDs, and SORs.")
+        self.logger.info("Executing Task 2: Create Dim Tables and SORs.")
         sql_filename = "dimensional_db_table_creation.sql"
-        result = create_dim_scd_sor_tables(start_date, end_date, sql_filename, logger=self.logger)
+        result = create_dim_sor_tables(start_date, end_date, sql_filename, logger=self.logger)
         if not result['success']:
             self.logger.error(f"Task 2 Failed: {result.get('message')}")
             return {'success': False, 'message': f"Task 2 Failed: {result.get('message')}"}
+
+        # Task 3: Create SCD Tables
+        self.logger.info("Executing Task 3: Create SCD Tables.")
+        sql_filename = "scd_creation.sql"
+        result = create_scd_tables(start_date, end_date, sql_filename, logger=self.logger)
+        if not result['success']:
+            self.logger.error(f"Task 3 Failed: {result.get('message')}")
+            return {'success': False, 'message': f"Task 3 Failed: {result.get('message')}"}
 
         # # Task 3: Ingest All Tables
         # self.logger.info("Executing Task 3: Ingest All Tables.")

@@ -189,9 +189,9 @@ def create_staging_tables(start_date, end_date, sql_filename, logger):
             logger.info("Database connection closed.")
 
 
-def create_dim_scd_sor_tables(start_date, end_date, sql_filename, logger):
+def create_dim_sor_tables(start_date, end_date, sql_filename, logger):
     """
-    Task to create dim, SCD, and SOR tables.
+    Task to create dim and SOR tables.
 
     :param start_date: Not used in this task but included for consistency.
     :param end_date: Not used in this task but included for consistency.
@@ -207,20 +207,20 @@ def create_dim_scd_sor_tables(start_date, end_date, sql_filename, logger):
         # Begin transaction
         connection.autocommit = False
 
-        result = create_table(connection, sql_filename, 'dim, sor, scd', logger)
+        result = create_table(connection, sql_filename, 'dim, sor', logger)
         if not result['success']:
             raise Exception(result.get('message'))
 
         # Commit transaction if all table creations succeeded
         connection.commit()
-        logger.info("All dim, scd, sor tables created successfully.")
+        logger.info("All dim, sor tables created successfully.")
         return {'success': True}
 
     except Exception as e:
         if connection:
             connection.rollback()
             logger.error("Transaction rolled back due to an error in table creation.")
-        logger.error(f"Error in create_dim_scd_sor_tables: {e}")
+        logger.error(f"Error in create_dim_sor_tables: {e}")
         return {'success': False, 'message': str(e)}
 
     finally:
@@ -228,6 +228,44 @@ def create_dim_scd_sor_tables(start_date, end_date, sql_filename, logger):
             connection.close()
             logger.info("Database connection closed.")
 
+def create_scd_tables(start_date, end_date, sql_filename, logger):
+    """
+    Task to create SCD tables.
+
+    :param start_date: Not used in this task but included for consistency.
+    :param end_date: Not used in this task but included for consistency.
+    :param sql_filename: SQL script filename.
+    :param logger: Logger instance.
+    :return: Dictionary indicating success status.
+    """
+    connection = None
+    try:
+        connection = connect_to_database(CONFIG_FILE, DATABASE_SECTION, logger=logger)
+        logger.info("Database connection established for table creation.")
+
+        # Begin transaction
+        connection.autocommit = False
+
+        result = create_table(connection, sql_filename, 'scd', logger)
+        if not result['success']:
+            raise Exception(result.get('message'))
+
+        # Commit transaction if all table creations succeeded
+        connection.commit()
+        logger.info("All SCD tables created successfully.")
+        return {'success': True}
+
+    except Exception as e:
+        if connection:
+            connection.rollback()
+            logger.error("Transaction rolled back due to an error in table creation.")
+        logger.error(f"Error in create_scd_tables: {e}")
+        return {'success': False, 'message': str(e)}
+
+    finally:
+        if connection:
+            connection.close()
+            logger.info("Database connection closed.")
 
 def ingest_all_tables(start_date, end_date, logger):
     """

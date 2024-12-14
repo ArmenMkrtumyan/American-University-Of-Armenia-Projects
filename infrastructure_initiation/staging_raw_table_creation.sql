@@ -1,18 +1,11 @@
--------------------------------------------------------------------------------
--- CREATE / USE THE ORDER_DDS DATABASE
--------------------------------------------------------------------------------
+USE ORDER_DDS;
+
 IF DB_ID('ORDER_DDS') IS NULL
 BEGIN
     CREATE DATABASE ORDER_DDS;
 END
 
 USE ORDER_DDS;
-
-
--------------------------------------------------------------------------------
--- 0) DROP ANY EXISTING TABLES (STAGING + DIM + FACT) IN PROPER ORDER
--------------------------------------------------------------------------------
-
 
 IF OBJECT_ID('dbo.Categories_Staging','U') IS NOT NULL DROP TABLE dbo.Categories_Staging;
 IF OBJECT_ID('dbo.Customers_Staging','U')  IS NOT NULL DROP TABLE dbo.Customers_Staging;
@@ -25,9 +18,6 @@ IF OBJECT_ID('dbo.Shippers_Staging','U')   IS NOT NULL DROP TABLE dbo.Shippers_S
 IF OBJECT_ID('dbo.Suppliers_Staging','U')  IS NOT NULL DROP TABLE dbo.Suppliers_Staging;
 IF OBJECT_ID('dbo.Territories_Staging','U') IS NOT NULL DROP TABLE dbo.Territories_Staging;
 
--------------------------------------------------------------------------------
--- 1) CREATE STAGING TABLES
--------------------------------------------------------------------------------
 CREATE TABLE Categories_Staging (
     staging_raw_category_id INT IDENTITY(1,1) PRIMARY KEY,
     CategoryID INT,
@@ -83,7 +73,7 @@ CREATE TABLE OrderDetails_Staging (
 
 CREATE TABLE Orders_Staging (
     staging_raw_order_id INT IDENTITY(1,1) PRIMARY KEY,
-    OrderID INT,   -- Business key from source
+    OrderID INT,
     CustomerID NVARCHAR(10),
     EmployeeID INT,
     OrderDate DATETIME,
@@ -145,6 +135,7 @@ CREATE TABLE Suppliers_Staging (
 CREATE TABLE Territories_Staging (
     staging_raw_territory_id INT IDENTITY(1,1) PRIMARY KEY,
     TerritoryID INT,
-    TerritoryDescription NVARCHAR(100),
+    TerritoryDescription NVARCHAR(50),
+    TerritoryCode NVARCHAR(20),
     RegionID INT
 );

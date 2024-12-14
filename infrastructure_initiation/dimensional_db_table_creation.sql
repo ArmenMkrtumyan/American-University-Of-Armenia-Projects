@@ -106,8 +106,8 @@ CREATE TABLE dbo.DimSuppliers (
 
 CREATE TABLE dbo.DimTerritories (
     TerritoriesID_sk_pk INT IDENTITY(1,1) PRIMARY KEY,
-    TerritoryID_nk INT UNIQUE NOT NULL,
-    TerritoryDescription NVARCHAR(100) NOT NULL,
+    TerritoryID_nk INT NOT NULL UNIQUE,
+    TerritoryDescription NVARCHAR(100),
     TerritoryCode NVARCHAR(20),
     Region_sk_fk INT NOT NULL
 );
