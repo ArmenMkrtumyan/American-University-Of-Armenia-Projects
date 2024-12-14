@@ -2,6 +2,7 @@
 
 from pipeline_dimensional_data.tasks import (
     create_staging_tables,
+    create_dim_scd_sor_tables,
     ingest_all_tables,
     ingest_multiple_tables,
     delete_data_from_table
@@ -28,19 +29,20 @@ class DimensionalDataFlow:
         logging.info("Starting Dimensional Data Flow execution.")
 
         # Task 1: Create all necessary tables
-        logging.info("Executing Task 1: Create All Tables. (staging tables)")
-        result = create_staging_tables(start_date, end_date)
+        logging.info("Executing Task 1: Create Staging Tables.")
+        sql_filename = "staging_raw_table_creation.sql"
+        result = create_staging_tables(start_date, end_date, sql_filename)
         if not result.get('success'):
             logging.error(f"Task 1 Failed: {result.get('message')}")
             return {'success': False, 'message': f"Task 1 Failed: {result.get('message')}"}
 
         # Task 2: Create dim tables, SCDs and SORs
-
-        # logging.info("Executing Task 2: Create Tables. (dim tables, SCDs and SORs)")
-        # result = create_staging_tables(start_date, end_date, 'dim')
-        # if not result.get('success'):
-        #     logging.error(f"Task 2 Failed: {result.get('message')}")
-        #     return {'success': False, 'message': f"Task 2 Failed: {result.get('message')}"}
+        sql_filename = "dimensional_db_table_creation.sql"
+        logging.info("Executing Task 2: Create Tables. (dim tables, SCDs and SORs)")
+        result = create_dim_scd_sor_tables(start_date, end_date, sql_filename)
+        if not result.get('success'):
+            logging.error(f"Task 2 Failed: {result.get('message')}")
+            return {'success': False, 'message': f"Task 2 Failed: {result.get('message')}"}
 
         # Task 2: Ingest data into all tables
         # logging.info("Executing Task 2: Ingest All Tables.")

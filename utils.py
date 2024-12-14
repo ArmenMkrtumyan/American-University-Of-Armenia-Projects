@@ -39,7 +39,7 @@ def connect_to_database(config_file, section):
         logging.error(f"Failed to connect to database: {e}")
         return None
 
-def execute_sql_script(connection, script_path, params=None):
+def execute_sql_script(connection, script_path):
     """
     Reads and executes an SQL script from a file with optional parameters.
 
@@ -53,13 +53,6 @@ def execute_sql_script(connection, script_path, params=None):
 
     with open(script_path, 'r') as file:
         sql_script = file.read()
-
-    if params:
-        try:
-            sql_script = sql_script.format(**params)
-        except KeyError as e:
-            logging.error(f"Missing parameter for SQL script: {e}")
-            raise
 
     cursor = connection.cursor()
     try:
